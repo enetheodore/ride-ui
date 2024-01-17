@@ -1,191 +1,127 @@
-import 'package:flutter/material.dart';
-import 'package:ride_app/verificationCodePage.dart';
-import 'package:ride_app/loginPage.dart';
+import 'dart:math';
 
-class SignUpPage extends StatefulWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:pip_view/pip_view.dart';
+import 'package:floating/floating.dart';
+
+class ProfileSetUpScreen extends StatefulWidget {
+  const ProfileSetUpScreen({Key? key}) : super(key: key);
+
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  State<ProfileSetUpScreen> createState() => _ProfileSetUpScreenState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
-  final _formKey = GlobalKey<FormState>();
-
-  String fullName = '';
-  String email = '';
-  int phoneNumber = 0;
-  String password = '';
+class _ProfileSetUpScreenState extends State<ProfileSetUpScreen>
+    with WidgetsBindingObserver {
+  late Floating floating;
+  bool _appIsMinimized = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Sign Up')),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Sign Up',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 16),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: 350,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextFormField(
-                            decoration: InputDecoration(labelText: 'Full Name'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your full name';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              fullName = value!;
-                            },
-                          ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                            decoration: InputDecoration(labelText: 'Email'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              email = value!;
-                            },
-                          ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                            initialValue:
-                                '', // Set the initial value to the desired phone number
-                            decoration:
-                                InputDecoration(labelText: 'Phone Number'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your phone number';
-                              } else if (value == String) {
-                                return 'Please use phone number only';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              phoneNumber = value! as int;
-                            },
-                          ),
-                          SizedBox(height: 8),
-                          TextFormField(
-                            decoration: InputDecoration(labelText: 'Password'),
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              password = value!;
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => VerificationCodePage()),
-                          );
-                        }
-                      },
-                      child: Text('Sign Up'),
-                    ),
-                    SizedBox(height: 16),
-                    Text('or sign up with'),
-                    SizedBox(height: 8),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: 350,
-                      ),
-                      child: Column(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Handle sign-up with Gmail
-                            },
-                            icon: Image.asset('assets/image/gmail.png',
-                                height: 24),
-                            label: Text('Gmail'),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 48),
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Handle sign-up with Facebook
-                            },
-                            icon: Image.asset('assets/image/facebook.png',
-                                height: 24),
-                            label: Text('Facebook'),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 48),
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {},
-                            icon: Image.asset('assets/image/twitter.png',
-                                height: 24),
-                            label: Text('Twitter'),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 48),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Already have an account?'),
-                        SizedBox(width: 8),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()),
-                            );
-                          },
-                          child: Text('Sign In'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addObserver(this);
+    floating = Floating();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    floating.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.inactive) {
+      floating.enable(aspectRatio: Rational.square());
+    }
+  }
+
+  Future<void> enablePip(BuildContext context) async {
+    final rational = Rational.landscape();
+    final screenSize =
+        MediaQuery.of(context).size * MediaQuery.of(context).devicePixelRatio;
+    final height = screenSize.width ~/ rational.aspectRatio;
+
+    final status = await floating.enable(
+      aspectRatio: rational,
+      sourceRectHint: Rectangle<int>(
+        0,
+        (screenSize.height ~/ 2) - (height ~/ 2),
+        screenSize.width.toInt(),
+        height,
       ),
     );
+    debugPrint('PiP enabled? $status');
   }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        theme: ThemeData.dark(),
+        home: PiPSwitcher(
+          childWhenDisabled: Scaffold(
+            body: Center(
+                child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: ListView(
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'First Name',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your first name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Last Name',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your last name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            )),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: FutureBuilder<bool>(
+              future: floating.isPipAvailable,
+              initialData: false,
+              builder: (context, snapshot) => snapshot.data ?? false
+                  ? FloatingActionButton.extended(
+                      onPressed: () => enablePip(context),
+                      label: const Text('Enable PiP'),
+                      icon: const Icon(Icons.picture_in_picture),
+                    )
+                  : const Card(
+                      child: Text('PiP unavailable'),
+                    ),
+            ),
+          ),
+          childWhenEnabled: Image.asset('assets/image.jpg'),
+        ),
+      );
 }
